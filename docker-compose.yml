@@ -1,0 +1,113 @@
+networks:
+  mc-net:
+    driver: bridge
+
+services:
+  x-0:
+    image: itzg/minecraft-server:java8
+    container_name: mc-0
+    tty: true
+    stdin_open: true
+    ports:
+      - "25565:25565"
+    environment:
+      EULA: "TRUE"
+      TYPE: "FORGE"
+      VERSION: "1.12.2"
+      FORGE_VERSION: "14.23.5.2864"
+      MEMORY: "6144M"
+      MAX_PLAYERS: "2"
+      MOTD: "Divine Journey 2"
+      USE_AIKAR_FLAGS: "true"
+      USE_MEOWICE_FLAGS: "true"
+    volumes:
+      - "/home/kagada/infraestructura/divine_journey2/data:/data"
+    networks:
+      - mc-net
+
+
+  x-1:
+    image: itzg/minecraft-server:java17
+    container_name: mc-1
+    tty: true
+    stdin_open: true
+    ports:
+      - "25566:25565"
+    environment:
+      EULA: "TRUE"
+      TYPE: "FORGE"
+      VERSION: "1.18.2"
+      FORGE_VERSION: "40.3.0"
+      MEMORY: "6144M"
+      MAX_PLAYERS: "3"
+      MOTD: "Adventure Of Echo Of The Legends"
+      USE_AIKAR_FLAGS: "true"
+      USE_MEOWICE_FLAGS: "true"
+    volumes:
+      - "/home/kagada/infraestructura/dawncraft/data:/data"
+    networks:
+      - mc-net
+
+
+  x-2:
+    image: itzg/minecraft-bedrock-server
+    container_name: bds-2
+    environment:
+      EULA: "TRUE"
+    ports:
+      - "1025:19132/udp"
+    volumes:
+      - /home/kagada/infraestructura/y-0/data:/data
+    stdin_open: true
+    tty: true
+    networks:
+      - mc-net
+
+
+  x-3:
+    image: itzg/minecraft-bedrock-server
+    container_name: bds-3
+    environment:
+      EULA: "TRUE"
+    ports:
+      - "1026:19132/udp"
+    volumes:
+      - /home/kagada/infraestructura/y-1/data:/data
+    stdin_open: true
+    tty: true
+    networks:
+      - mc-net
+
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - mc-net
+
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - mc-net
+
+
+  grafana:
+    image: grafana/grafana-enterprise
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - mc-net
